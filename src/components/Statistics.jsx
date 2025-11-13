@@ -1,0 +1,369 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '../Config';
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  Grid,
+  Paper,
+  Avatar,
+  Stack,
+  CircularProgress,
+  Divider
+} from '@mui/material';
+import {
+  People as PeopleIcon,
+  HourglassEmpty as PendingIcon,
+  CheckCircle as ApprovedIcon,
+  Cancel as RejectedIcon,
+  TrendingUp as TrendingUpIcon
+} from '@mui/icons-material';
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+
+const Statistics = () => {
+  const { currentUser, userRole } = useAuth();
+  const [stats, setStats] = useState({
+    totalEmployees: 0,
+    pendingLeaves: 0,
+    approvedLeaves: 0,
+    rejectedLeaves: 0,
+    myTeamSize: 0
+  });
+  const [leaveTypeStats, setLeaveTypeStats] = useState([]);
+  const [monthlyLeaveStats, setMonthlyLeaveStats] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        // Get total employees
+        const usersQuery = query(collection(db, 'users'));
+        const leavesQuery = query(collection(db, 'leaveRequests'));
+        
+        const unsubUsers = onSnapshot(usersQuery, (snapshot) => {
+          const users = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          
+          let myTeam = 0;
+          if (userRole !== 'employee') {
+            myTeam = users.filter(user => user.assignedTo === currentUser?.uid).length;
+          }
+          
+          setStats(prev => ({ 
+            ...prev, 
+            totalEmployees: users.length,
+            myTeamSize: myTeam
+          }));
+        });
+
+        const unsubLeaves = onSnapshot(leavesQuery, (snapshot) => {
+          const leaves = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          
+          let pending = 0;
+          let approved = 0;
+          let rejected = 0;
+          let relevantLeaves = [];
+
+          if (userRole === 'employee') {
+            // Employee sees only their leaves
+            relevantLeaves = leaves.filter(leave => leave.userId === currentUser?.uid);
+          } else if (userRole === 'AE') {
+            // AE sees all leaves
+            relevantLeaves = leaves;
+          } else {
+            // HR/GM see leaves from their assigned employees
+            const usersSnapshot = snapshot.docs;
+            const assignedUserIds = usersSnapshot
+              .map(doc => ({ id: doc.id, ...doc.data() }))
+              .filter(user => user.assignedTo === currentUser?.uid)
+              .map(user => user.uid);
+            
+            relevantLeaves = leaves.filter(leave => 
+              assignedUserIds.includes(leave.userId)
+            );
+          }
+
+          pending = relevantLeaves.filter(l => l.status === 'pending').length;
+          approved = relevantLeaves.filter(l => l.status === 'approved').length;
+          rejected = relevantLeaves.filter(l => l.status === 'rejected').length;
+
+          // Calculate leave type statistics
+          const typeStats = {};
+          relevantLeaves.forEach(leave => {
+            const type = leave.leaveType || 'casual';
+            typeStats[type] = (typeStats[type] || 0) + 1;
+          });
+          const leaveTypes = Object.keys(typeStats).map(key => ({
+            name: key.charAt(0).toUpperCase() + key.slice(1),
+            value: typeStats[key]
+          }));
+          setLeaveTypeStats(leaveTypes);
+
+          // Calculate monthly statistics (last 6 months)
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const currentDate = new Date();
+          const monthlyStats = {};
+          
+          for (let i = 5; i >= 0; i--) {
+            const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
+            const monthKey = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+            monthlyStats[monthKey] = { month: monthKey, approved: 0, rejected: 0, pending: 0 };
+          }
+
+          relevantLeaves.forEach(leave => {
+            if (leave.createdAt) {
+              const leaveDate = leave.createdAt.toDate ? leave.createdAt.toDate() : new Date(leave.createdAt);
+              const monthKey = `${monthNames[leaveDate.getMonth()]} ${leaveDate.getFullYear()}`;
+              if (monthlyStats[monthKey]) {
+                if (leave.status === 'approved') monthlyStats[monthKey].approved++;
+                else if (leave.status === 'rejected') monthlyStats[monthKey].rejected++;
+                else monthlyStats[monthKey].pending++;
+              }
+            }
+          });
+
+          setMonthlyLeaveStats(Object.values(monthlyStats));
+
+          setStats(prev => ({
+            ...prev,
+            pendingLeaves: pending,
+            approvedLeaves: approved,
+            rejectedLeaves: rejected
+          }));
+          
+          setLoading(false);
+        });
+
+        return () => {
+          unsubUsers();
+          unsubLeaves();
+        };
+      } catch (error) {
+        console.error('Error loading stats:', error);
+        setLoading(false);
+      }
+    };
+
+    loadStats();
+  }, [currentUser, userRole]);
+
+  const StatCard = ({ title, value, icon, color, gradient }) => (
+    <Card 
+      elevation={3}
+      sx={{
+        background: gradient,
+        color: 'white',
+        height: '100%'
+      }}
+    >
+      <CardContent>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <Box>
+            <Typography variant="h4" fontWeight="bold">
+              {value}
+            </Typography>
+            <Typography variant="body1" sx={{ mt: 1, opacity: 0.9 }}>
+              {title}
+            </Typography>
+          </Box>
+          <Avatar
+            sx={{
+              bgcolor: 'rgba(255, 255, 255, 0.3)',
+              width: 60,
+              height: 60
+            }}
+          >
+            {icon}
+          </Avatar>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+
+  if (loading) {
+    return (
+      <Box display="flex" justifyContent="center" p={4}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
+  const statusData = [
+    { name: 'Pending', value: stats.pendingLeaves, color: '#FFA726' },
+    { name: 'Approved', value: stats.approvedLeaves, color: '#66BB6A' },
+    { name: 'Rejected', value: stats.rejectedLeaves, color: '#EF5350' }
+  ];
+
+  return (
+    <Box>
+      <Typography variant="h5" fontWeight="bold" color="primary" mb={3}>
+        Dashboard Overview
+      </Typography>
+      
+      {/* Statistics Cards */}
+      <Grid container spacing={3} mb={4}>
+        {(userRole === 'AE' || userRole === 'HR' || userRole === 'GM') && (
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="Total Employees"
+              value={stats.totalEmployees}
+              icon={<PeopleIcon sx={{ fontSize: 30 }} />}
+              gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+            />
+          </Grid>
+        )}
+
+        {(userRole !== 'employee') && (
+          <Grid item xs={12} sm={6} md={3}>
+            <StatCard
+              title="My Team"
+              value={stats.myTeamSize}
+              icon={<TrendingUpIcon sx={{ fontSize: 30 }} />}
+              gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+            />
+          </Grid>
+        )}
+
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Pending Leaves"
+            value={stats.pendingLeaves}
+            icon={<PendingIcon sx={{ fontSize: 30 }} />}
+            gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Approved Leaves"
+            value={stats.approvedLeaves}
+            icon={<ApprovedIcon sx={{ fontSize: 30 }} />}
+            gradient="linear-gradient(135deg, #30cfd0 0%, #330867 100%)"
+          />
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <StatCard
+            title="Rejected Leaves"
+            value={stats.rejectedLeaves}
+            icon={<RejectedIcon sx={{ fontSize: 30 }} />}
+            gradient="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
+          />
+        </Grid>
+      </Grid>
+
+      {/* Charts Section */}
+      <Grid container spacing={3}>
+        {/* Leave Status Pie Chart */}
+        <Grid item xs={12} md={6}>
+          <Card elevation={3}>
+            <CardContent>
+              <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+                Leave Status Distribution
+              </Typography>
+              <Divider sx={{ mb: 2 }} />
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={statusData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ${value}`}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {statusData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Leave Types Pie Chart */}
+        {leaveTypeStats.length > 0 && (
+          <Grid item xs={12} md={6}>
+            <Card elevation={3}>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+                  Leave Types Distribution
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={leaveTypeStats}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {leaveTypeStats.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* Monthly Leave Trends Bar Chart */}
+        {monthlyLeaveStats.length > 0 && (
+          <Grid item xs={12}>
+            <Card elevation={3}>
+              <CardContent>
+                <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+                  Monthly Leave Trends (Last 6 Months)
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart data={monthlyLeaveStats}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="approved" fill="#66BB6A" name="Approved" />
+                    <Bar dataKey="pending" fill="#FFA726" name="Pending" />
+                    <Bar dataKey="rejected" fill="#EF5350" name="Rejected" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+      </Grid>
+    </Box>
+  );
+};
+
+export default Statistics;
