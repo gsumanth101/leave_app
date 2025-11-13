@@ -163,28 +163,53 @@ const Statistics = () => {
 
   const StatCard = ({ title, value, icon, color, gradient }) => (
     <Card 
-      elevation={3}
+      elevation={0}
       sx={{
-        background: gradient,
-        color: 'white',
-        height: '100%'
+        background: '#fff',
+        border: '1px solid rgba(0,0,0,0.08)',
+        borderRadius: 2.5,
+        height: '100%',
+        transition: 'all 0.3s ease',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: '0 12px 24px rgba(0,0,0,0.08)',
+          borderColor: '#000',
+        }
       }}
     >
-      <CardContent>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <Box>
-            <Typography variant="h4" fontWeight="bold">
-              {value}
-            </Typography>
-            <Typography variant="body1" sx={{ mt: 1, opacity: 0.9 }}>
+      <CardContent sx={{ p: 2.5 }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+          <Box sx={{ flex: 1 }}>
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: '#666', 
+                fontWeight: 500,
+                mb: 1,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px',
+                fontSize: '0.6875rem'
+              }}
+            >
               {title}
+            </Typography>
+            <Typography 
+              variant="h4" 
+              fontWeight="700"
+              sx={{
+                color: '#000',
+                letterSpacing: '-1px'
+              }}
+            >
+              {value}
             </Typography>
           </Box>
           <Avatar
             sx={{
-              bgcolor: 'rgba(255, 255, 255, 0.3)',
-              width: 60,
-              height: 60
+              bgcolor: '#000',
+              width: 44,
+              height: 44,
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             }}
           >
             {icon}
@@ -202,19 +227,32 @@ const Statistics = () => {
     );
   }
 
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+  const COLORS = ['#000', '#333', '#666', '#999', '#ccc'];
 
   const statusData = [
-    { name: 'Pending', value: stats.pendingLeaves, color: '#FFA726' },
-    { name: 'Approved', value: stats.approvedLeaves, color: '#66BB6A' },
-    { name: 'Rejected', value: stats.rejectedLeaves, color: '#EF5350' }
+    { name: 'Pending', value: stats.pendingLeaves, color: '#666' },
+    { name: 'Approved', value: stats.approvedLeaves, color: '#000' },
+    { name: 'Rejected', value: stats.rejectedLeaves, color: '#333' }
   ];
 
   return (
     <Box>
-      <Typography variant="h5" fontWeight="bold" color="primary" mb={3}>
-        Dashboard Overview
-      </Typography>
+      <Box sx={{ mb: 3 }}>
+        <Typography 
+          variant="h5" 
+          fontWeight="700"
+          sx={{ 
+            color: '#000',
+            letterSpacing: '-0.5px',
+            mb: 0.5
+          }}
+        >
+          Dashboard Overview
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8125rem' }}>
+          Real-time insights and statistics
+        </Typography>
+      </Box>
       
       {/* Statistics Cards */}
       <Grid container spacing={3} mb={4}>
@@ -223,8 +261,7 @@ const Statistics = () => {
             <StatCard
               title="Total Employees"
               value={stats.totalEmployees}
-              icon={<PeopleIcon sx={{ fontSize: 30 }} />}
-              gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+              icon={<PeopleIcon sx={{ fontSize: 22 }} />}
             />
           </Grid>
         )}
@@ -234,8 +271,7 @@ const Statistics = () => {
             <StatCard
               title="My Team"
               value={stats.myTeamSize}
-              icon={<TrendingUpIcon sx={{ fontSize: 30 }} />}
-              gradient="linear-gradient(135deg, #f093fb 0%, #f5576c 100%)"
+              icon={<TrendingUpIcon sx={{ fontSize: 22 }} />}
             />
           </Grid>
         )}
@@ -244,8 +280,7 @@ const Statistics = () => {
           <StatCard
             title="Pending Leaves"
             value={stats.pendingLeaves}
-            icon={<PendingIcon sx={{ fontSize: 30 }} />}
-            gradient="linear-gradient(135deg, #fa709a 0%, #fee140 100%)"
+            icon={<PendingIcon sx={{ fontSize: 22 }} />}
           />
         </Grid>
 
@@ -253,8 +288,7 @@ const Statistics = () => {
           <StatCard
             title="Approved Leaves"
             value={stats.approvedLeaves}
-            icon={<ApprovedIcon sx={{ fontSize: 30 }} />}
-            gradient="linear-gradient(135deg, #30cfd0 0%, #330867 100%)"
+            icon={<ApprovedIcon sx={{ fontSize: 22 }} />}
           />
         </Grid>
 
@@ -262,8 +296,7 @@ const Statistics = () => {
           <StatCard
             title="Rejected Leaves"
             value={stats.rejectedLeaves}
-            icon={<RejectedIcon sx={{ fontSize: 30 }} />}
-            gradient="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
+            icon={<RejectedIcon sx={{ fontSize: 22 }} />}
           />
         </Grid>
       </Grid>
@@ -272,12 +305,34 @@ const Statistics = () => {
       <Grid container spacing={3}>
         {/* Leave Status Pie Chart */}
         <Grid item xs={12} md={6}>
-          <Card elevation={3}>
-            <CardContent>
-              <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+          <Card 
+            elevation={0}
+            sx={{
+              background: '#fff',
+              border: '1px solid rgba(0,0,0,0.08)',
+              borderRadius: 3,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+              }
+            }}
+          >
+            <CardContent sx={{ p: 2.5 }}>
+              <Typography 
+                variant="h6" 
+                fontWeight="700"
+                sx={{ 
+                  color: '#000',
+                  mb: 0.5,
+                  fontSize: '0.9375rem'
+                }}
+              >
                 Leave Status Distribution
               </Typography>
-              <Divider sx={{ mb: 2 }} />
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, fontSize: '0.8125rem' }}>
+                Current leave request breakdown
+              </Typography>
+              <Divider sx={{ mb: 2.5, borderColor: 'rgba(0,0,0,0.08)' }} />
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie
@@ -305,12 +360,34 @@ const Statistics = () => {
         {/* Leave Types Pie Chart */}
         {leaveTypeStats.length > 0 && (
           <Grid item xs={12} md={6}>
-            <Card elevation={3}>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
+            <Card 
+              elevation={0}
+              sx={{
+                background: '#fff',
+                border: '1px solid rgba(0,0,0,0.08)',
+                borderRadius: 3,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                }
+              }}
+            >
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography 
+                  variant="h6" 
+                  fontWeight="700"
+                  sx={{ 
+                    color: '#000',
+                    mb: 0.5,
+                    fontSize: '0.9375rem'
+                  }}
+                >
                   Leave Types Distribution
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, fontSize: '0.8125rem' }}>
+                  Breakdown by leave category
+                </Typography>
+                <Divider sx={{ mb: 2.5, borderColor: 'rgba(0,0,0,0.08)' }} />
                 <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie
@@ -339,22 +416,51 @@ const Statistics = () => {
         {/* Monthly Leave Trends Bar Chart */}
         {monthlyLeaveStats.length > 0 && (
           <Grid item xs={12}>
-            <Card elevation={3}>
-              <CardContent>
-                <Typography variant="h6" fontWeight="bold" color="primary" mb={2}>
-                  Monthly Leave Trends (Last 6 Months)
+            <Card 
+              elevation={0}
+              sx={{
+                background: '#fff',
+                border: '1px solid rgba(0,0,0,0.08)',
+                borderRadius: 3,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+                }
+              }}
+            >
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography 
+                  variant="h6" 
+                  fontWeight="700"
+                  sx={{ 
+                    color: '#000',
+                    mb: 0.5,
+                    fontSize: '0.9375rem'
+                  }}
+                >
+                  Monthly Leave Trends
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2.5, fontSize: '0.8125rem' }}>
+                  Last 6 months overview
+                </Typography>
+                <Divider sx={{ mb: 2.5, borderColor: 'rgba(0,0,0,0.08)' }} />
                 <ResponsiveContainer width="100%" height={350}>
                   <BarChart data={monthlyLeaveStats}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.08)" />
+                    <XAxis dataKey="month" stroke="#666" />
+                    <YAxis stroke="#666" />
+                    <Tooltip 
+                      contentStyle={{
+                        background: '#fff',
+                        border: '1px solid rgba(0,0,0,0.08)',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.08)'
+                      }}
+                    />
                     <Legend />
-                    <Bar dataKey="approved" fill="#66BB6A" name="Approved" />
-                    <Bar dataKey="pending" fill="#FFA726" name="Pending" />
-                    <Bar dataKey="rejected" fill="#EF5350" name="Rejected" />
+                    <Bar dataKey="approved" fill="#000" name="Approved" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="pending" fill="#666" name="Pending" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="rejected" fill="#333" name="Rejected" radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>

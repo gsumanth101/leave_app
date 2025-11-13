@@ -77,8 +77,8 @@ const LeaveCalendar = () => {
   // Update leaves on selected date whenever date or leaves change
   useEffect(() => {
     const leavesOnDate = leaves.filter((leave) => {
-      const start = dayjs(leave.startDate, 'DD/MM/YYYY');
-      const end = dayjs(leave.endDate, 'DD/MM/YYYY');
+      const start = dayjs(leave.startDate, 'YYYY-MM-DD');
+      const end = dayjs(leave.endDate, 'YYYY-MM-DD');
       return selectedDate.isBetween(start, end, 'day', '[]');
     });
     setLeavesOnSelectedDate(leavesOnDate);
@@ -87,8 +87,8 @@ const LeaveCalendar = () => {
   // Check if a date has any leaves
   const hasLeaveOnDate = (date) => {
     return leaves.some((leave) => {
-      const start = dayjs(leave.startDate, 'DD/MM/YYYY');
-      const end = dayjs(leave.endDate, 'DD/MM/YYYY');
+      const start = dayjs(leave.startDate, 'YYYY-MM-DD');
+      const end = dayjs(leave.endDate, 'YYYY-MM-DD');
       return date.isBetween(start, end, 'day', '[]');
     });
   };
