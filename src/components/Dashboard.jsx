@@ -44,7 +44,7 @@ import Profile from './Profile';
 const drawerWidth = 260;
 
 const Dashboard = () => {
-  const { currentUser, userRole, logout } = useAuth();
+  const { currentUser, userRole, userName, logout } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -154,12 +154,12 @@ const Dashboard = () => {
   };
 
   const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#fafafa' }}>
-      {/* User Profile Section */}
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffffff' }}>
+
       <Box
         sx={{
           p: 3,
-          background: '#000',
+          background: '#ffffffff',
           color: 'white',
           borderBottom: '1px solid rgba(255,255,255,0.1)'
         }}
@@ -170,30 +170,30 @@ const Dashboard = () => {
               width: 44,
               height: 44,
               bgcolor: '#fff',
-              color: '#000',
+              color: '#000000ff',
               fontWeight: 700,
               fontSize: '1.125rem',
               border: '2px solid rgba(255,255,255,0.2)',
               boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
             }}
           >
-            {currentUser?.email?.charAt(0).toUpperCase()}
+            {(userName || currentUser?.email)?.charAt(0).toUpperCase()}
           </Avatar>
           <Box>
             <Typography variant="body1" fontWeight="700" sx={{ mb: 0.25, fontSize: '0.9375rem' }}>
-              {currentUser?.email?.split('@')[0]}
+              {userName || currentUser?.email?.split('@')[0]}
             </Typography>
             <Chip
               label={getRoleDisplay(userRole)}
               size="small"
+              color={getRoleColor(userRole)}
               sx={{
-                bgcolor: 'rgba(255,255,255,0.15)',
-                color: 'white',
                 fontWeight: 600,
                 fontSize: '0.6875rem',
                 height: 22,
                 borderRadius: 1.5,
-                backdropFilter: 'blur(10px)'
+                display: 'inline-flex',
+                alignItems: 'center'
               }}
             />
           </Box>
@@ -235,7 +235,7 @@ const Dashboard = () => {
               }}
             >
               <ListItemIcon sx={{ minWidth: 40, color: '#666' }}>{item.icon}</ListItemIcon>
-              <ListItemText 
+              <ListItemText
                 primary={item.label}
                 primaryTypographyProps={{
                   fontSize: '0.95rem',
@@ -252,9 +252,9 @@ const Dashboard = () => {
       {/* Logout Button */}
       <List sx={{ px: 1.5, py: 2 }}>
         <ListItem disablePadding>
-          <ListItemButton 
-            onClick={handleLogout} 
-            sx={{ 
+          <ListItemButton
+            onClick={handleLogout}
+            sx={{
               borderRadius: 2,
               py: 1.2,
               color: '#d32f2f',
@@ -268,7 +268,7 @@ const Dashboard = () => {
             <ListItemIcon sx={{ minWidth: 36, color: '#d32f2f' }}>
               <LogoutIcon />
             </ListItemIcon>
-            <ListItemText 
+            <ListItemText
               primary="Logout"
               primaryTypographyProps={{
                 fontSize: '0.875rem',
@@ -301,8 +301,8 @@ const Dashboard = () => {
             color="inherit"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ 
-              mr: 2, 
+            sx={{
+              mr: 2,
               display: { md: 'none' },
               '&:hover': {
                 bgcolor: 'rgba(0,0,0,0.04)'
@@ -311,18 +311,18 @@ const Dashboard = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography 
-            variant="h6" 
-            noWrap 
-            component="div" 
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
             fontWeight="700"
-            sx={{ 
+            sx={{
               letterSpacing: '-0.5px',
               color: '#000',
               fontSize: '1rem'
             }}
           >
-            Leave Management System
+            Staff Management
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Chip
@@ -392,8 +392,8 @@ const Dashboard = () => {
           transition: 'all 0.3s ease'
         }}
       >
-        <Box sx={{ 
-          maxWidth: '1400px', 
+        <Box sx={{
+          maxWidth: '1400px',
           margin: '0 auto',
         }}>
           {renderContent()}

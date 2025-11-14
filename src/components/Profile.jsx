@@ -40,7 +40,7 @@ const Profile = () => {
   
   // Edit profile state
   const [editMode, setEditMode] = useState(false);
-  const [name, setName] = useState('');
+  const [fullName, setName] = useState('');
   const [phone, setPhone] = useState('');
   
   // Password change state
@@ -62,7 +62,7 @@ const Profile = () => {
       if (userDoc.exists()) {
         const data = userDoc.data();
         setUserData(data);
-        setName(data.name || '');
+        setName(data.fullName || '');
         setPhone(data.phone || '');
       }
       setLoading(false);
@@ -79,7 +79,7 @@ const Profile = () => {
 
     try {
       await updateDoc(doc(db, 'users', currentUser.uid), {
-        name,
+        fullName,
         phone,
       });
       setSuccess('Profile updated successfully!');
@@ -201,7 +201,7 @@ const Profile = () => {
                     fontSize: '4rem',
                   }}
                 >
-                  {userData?.name?.[0]?.toUpperCase() || currentUser?.email?.[0]?.toUpperCase()}
+                  {userData?.fullName?.[0]?.toUpperCase() || currentUser?.email?.[0]?.toUpperCase()}
                 </Avatar>
                 <Chip
                   label={userRole?.toUpperCase()}
@@ -229,12 +229,12 @@ const Profile = () => {
                 <Divider sx={{ mb: 2 }} />
 
                 <Grid container spacing={2}>
-                  {/* Name */}
+                  {/* fullName */}
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      label="Full Name"
-                      value={name}
+                      label="Full fullName"
+                      value={fullName}
                       onChange={(e) => setName(e.target.value)}
                       disabled={!editMode}
                       InputProps={{
@@ -305,7 +305,7 @@ const Profile = () => {
                           variant="outlined"
                           onClick={() => {
                             setEditMode(false);
-                            setName(userData?.name || '');
+                            setName(userData?.fullName || '');
                             setPhone(userData?.phone || '');
                             setError('');
                           }}
