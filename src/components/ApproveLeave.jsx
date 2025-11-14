@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, serverTimestamp, where } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, serverTimestamp, where, getDoc } from 'firebase/firestore';
 import { db } from '../Config';
 import {
   Box,
@@ -45,7 +45,7 @@ import {
 } from '@mui/icons-material';
 
 const ApproveLeave = () => {
-  const { currentUser, userRole } = useAuth();
+  const { currentUser, userRole, userName } = useAuth();
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -71,16 +71,32 @@ const ApproveLeave = () => {
     );
 
     const unsubscribe = onSnapshot(q, 
-      (snapshot) => {
+      async (snapshot) => {
         let leaveData = snapshot.docs.map(doc => ({
           id: doc.id,
           ...doc.data()
         }));
 
-        // HR sees all leaves for first level approval
-        // No filtering needed for HR - they approve everything first
+        // Fetch user details (fullName) for each leave request
+        const leavesWithUserData = await Promise.all(
+          leaveData.map(async (leave) => {
+            try {
+              const userDoc = await getDoc(doc(db, 'users', leave.userId));
+              if (userDoc.exists()) {
+                const userData = userDoc.data();
+                return {
+                  ...leave,
+                  fullName: userData.fullName || userData.name || null
+                };
+              }
+            } catch (error) {
+              console.error('Error fetching user data:', error);
+            }
+            return leave;
+          })
+        );
 
-        setLeaves(leaveData);
+        setLeaves(leavesWithUserData);
         setLoading(false);
       },
       (err) => {
@@ -122,6 +138,7 @@ const ApproveLeave = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(leave => 
+        leave.fullName?.toLowerCase().includes(query) ||
         leave.userName?.toLowerCase().includes(query) ||
         leave.userEmail?.toLowerCase().includes(query) ||
         leave.reason?.toLowerCase().includes(query) ||
@@ -162,7 +179,7 @@ const ApproveLeave = () => {
       updateData.hrApproval = {
         status: actionType,
         approvedBy: currentUser.email,
-        approvedByName: currentUser.displayName || currentUser.email,
+        approvedByName: userName || currentUser.displayName || currentUser.email,
         remarks: remarks,
         timestamp: serverTimestamp()
       };
@@ -232,7 +249,7 @@ const ApproveLeave = () => {
           </TableCell>
           <TableCell>
             <Typography variant="body2" fontWeight="500">
-              {row.userName || 'N/A'}
+              {row.fullName || 'N/A'}
             </Typography>
             <Typography variant="caption" color="text.secondary">
               {row.userEmail}
@@ -302,7 +319,7 @@ const ApproveLeave = () => {
                       </Typography>
                       <Divider sx={{ mb: 1 }} />
                       <Box sx={{ mt: 1 }}>
-                        <Typography variant="body2"><strong>Name:</strong> {row.userName || 'N/A'}</Typography>
+                        <Typography variant="body2"><strong>Name:</strong> {row.fullName || row.userName || 'N/A'}</Typography>
                         <Typography variant="body2" sx={{ mt: 0.5 }}><strong>Email:</strong> {row.userEmail}</Typography>
                         {row.phone && (
                           <Typography variant="body2" sx={{ mt: 0.5 }}><strong>Phone:</strong> {row.phone}</Typography>
@@ -555,7 +572,7 @@ const ApproveLeave = () => {
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="body2" color="text.secondary">Name</Typography>
-                  <Typography variant="body1" fontWeight="500">{selectedLeave.userName || 'N/A'}</Typography>
+                  <Typography variant="body1" fontWeight="500">{selectedLeave.fullName || selectedLeave.userName || 'N/A'}</Typography>
                 </Grid>
                 <Grid item xs={6}>
                   <Typography variant="body2" color="text.secondary">Email</Typography>

@@ -44,7 +44,7 @@ import Profile from './Profile';
 const drawerWidth = 260;
 
 const Dashboard = () => {
-  const { currentUser, userRole, logout } = useAuth();
+  const { currentUser, userRole, userName, logout } = useAuth();
   const navigate = useNavigate();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -154,84 +154,127 @@ const Dashboard = () => {
   };
 
   const drawer = (
-    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* User Profile Section */}
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', bgcolor: '#ffffffff' }}>
+
       <Box
         sx={{
           p: 3,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          color: 'white'
+          background: '#ffffffff',
+          color: 'white',
+          borderBottom: '1px solid rgba(255,255,255,0.1)'
         }}
       >
-        <Box display="flex" alignItems="center" gap={2}>
+        <Box display="flex" alignItems="center" gap={1.5}>
           <Avatar
             sx={{
-              width: 50,
-              height: 50,
-              bgcolor: 'rgba(255,255,255,0.3)',
-              fontWeight: 'bold'
+              width: 44,
+              height: 44,
+              bgcolor: '#fff',
+              color: '#000000ff',
+              fontWeight: 700,
+              fontSize: '1.125rem',
+              border: '2px solid rgba(255,255,255,0.2)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.2)'
             }}
           >
-            {currentUser?.email?.charAt(0).toUpperCase()}
+            {(userName || currentUser?.email)?.charAt(0).toUpperCase()}
           </Avatar>
           <Box>
-            <Typography variant="subtitle1" fontWeight="bold">
-              {currentUser?.email?.split('@')[0]}
+            <Typography variant="body1" fontWeight="700" sx={{ mb: 0.25, fontSize: '0.9375rem' }}>
+              {userName || currentUser?.email?.split('@')[0]}
             </Typography>
             <Chip
               label={getRoleDisplay(userRole)}
               size="small"
+              color={getRoleColor(userRole)}
               sx={{
-                bgcolor: 'rgba(255,255,255,0.2)',
-                color: 'white',
-                fontWeight: 'bold'
+                fontWeight: 600,
+                fontSize: '0.6875rem',
+                height: 22,
+                borderRadius: 1.5,
+                display: 'inline-flex',
+                alignItems: 'center'
               }}
             />
           </Box>
         </Box>
       </Box>
 
-      <Divider />
+      <Divider sx={{ borderColor: 'rgba(0,0,0,0.08)' }} />
 
       {/* Navigation Menu */}
-      <List sx={{ flexGrow: 1, pt: 2 }}>
+      <List sx={{ flexGrow: 1, pt: 2, px: 1.5 }}>
         {getMenuItems().map((item) => (
-          <ListItem key={item.id} disablePadding sx={{ mb: 0.5 }}>
+          <ListItem key={item.id} disablePadding sx={{ mb: 1 }}>
             <ListItemButton
               selected={selectedView === item.id}
               onClick={() => handleMenuClick(item.id)}
               sx={{
-                mx: 1,
                 borderRadius: 2,
+                py: 1.5,
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  bgcolor: 'rgba(0,0,0,0.04)',
+                  transform: 'translateX(4px)',
+                },
                 '&.Mui-selected': {
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  bgcolor: '#000',
                   color: 'white',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #5568d3 0%, #653a8b 100%)',
+                    bgcolor: '#1a1a1a',
+                    transform: 'translateX(4px)',
                   },
                   '& .MuiListItemIcon-root': {
                     color: 'white'
+                  },
+                  '& .MuiListItemText-primary': {
+                    fontWeight: 600
                   }
                 }
               }}
             >
-              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
+              <ListItemIcon sx={{ minWidth: 40, color: '#666' }}>{item.icon}</ListItemIcon>
+              <ListItemText
+                primary={item.label}
+                primaryTypographyProps={{
+                  fontSize: '0.95rem',
+                  fontWeight: 500
+                }}
+              />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
 
-      <Divider />
+      <Divider sx={{ borderColor: 'rgba(0,0,0,0.08)' }} />
 
       {/* Logout Button */}
-      <List>
+      <List sx={{ px: 1.5, py: 2 }}>
         <ListItem disablePadding>
-          <ListItemButton onClick={handleLogout} sx={{ mx: 1, borderRadius: 2 }}>
-            <ListItemIcon sx={{ minWidth: 40 }}>
+          <ListItemButton
+            onClick={handleLogout}
+            sx={{
+              borderRadius: 2,
+              py: 1.2,
+              color: '#d32f2f',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                bgcolor: 'rgba(211, 47, 47, 0.08)',
+                transform: 'translateX(4px)',
+              }
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 36, color: '#d32f2f' }}>
               <LogoutIcon />
             </ListItemIcon>
-            <ListItemText primary="Logout" />
+            <ListItemText
+              primary="Logout"
+              primaryTypographyProps={{
+                fontSize: '0.875rem',
+                fontWeight: 500
+              }}
+            />
           </ListItemButton>
         </ListItem>
       </List>
@@ -239,28 +282,62 @@ const Dashboard = () => {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', minHeight: '100vh' }}>
       {/* App Bar */}
       <AppBar
         position="fixed"
+        elevation={0}
         sx={{
           width: { md: `calc(100% - ${drawerWidth}px)` },
           ml: { md: `${drawerWidth}px` },
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          bgcolor: '#fff',
+          color: '#000',
+          borderBottom: '1px solid rgba(0,0,0,0.08)',
+          backdropFilter: 'blur(20px)',
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ py: 1 }}>
           <IconButton
             color="inherit"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { md: 'none' } }}
+            sx={{
+              mr: 2,
+              display: { md: 'none' },
+              '&:hover': {
+                bgcolor: 'rgba(0,0,0,0.04)'
+              }
+            }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" fontWeight="bold">
-            Leave Management System
+          <Typography
+            variant="h6"
+            noWrap
+            component="div"
+            fontWeight="700"
+            sx={{
+              letterSpacing: '-0.5px',
+              color: '#000',
+              fontSize: '1rem'
+            }}
+          >
+            Staff Management
           </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Chip
+            label={getRoleDisplay(userRole)}
+            size="small"
+            sx={{
+              bgcolor: '#000',
+              color: '#fff',
+              fontWeight: 600,
+              display: { xs: 'none', sm: 'flex' },
+              height: 28,
+              fontSize: '0.75rem',
+              px: 1
+            }}
+          />
         </Toolbar>
       </AppBar>
 
@@ -307,14 +384,20 @@ const Dashboard = () => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 2, sm: 3, md: 4 },
           width: { md: `calc(100% - ${drawerWidth}px)` },
           minHeight: '100vh',
-          bgcolor: '#f5f7fa',
-          mt: 8
+          bgcolor: '#f5f5f5',
+          mt: { xs: 7, sm: 8 },
+          transition: 'all 0.3s ease'
         }}
       >
-        {renderContent()}
+        <Box sx={{
+          maxWidth: '1400px',
+          margin: '0 auto',
+        }}>
+          {renderContent()}
+        </Box>
       </Box>
     </Box>
   );

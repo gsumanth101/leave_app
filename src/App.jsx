@@ -1,16 +1,20 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
 import { AuthProvider } from './contexts/AuthContext';
 import Login from './components/Login';
 import Signup from './components/Signup';
 import Dashboard from './components/Dashboard';
 import ProtectedRoute from './components/ProtectedRoute';
-// import './App.css';
+import theme from './theme';
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <Routes>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Router>
+        <AuthProvider>
+          <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route
@@ -36,9 +40,10 @@ function App() {
             }
           />
           <Route path="/" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </AuthProvider>
-    </Router>
+          </Routes>
+        </AuthProvider>
+      </Router>
+    </ThemeProvider>
   );
 }
 

@@ -323,28 +323,30 @@ const ApplyLeave = () => {
                 </Grid>
 
                 {/* Submit Button */}
-                <Grid item xs={12}>
+                <Grid item xs={12} sm={6}>
                   <Button
                     type="submit"
                     variant="contained"
-                    size="large"
                     fullWidth
                     disabled={loading || duration <= 0}
-                    startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <SendIcon />}
+                    startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <SendIcon />}
                     sx={{
-                      py: 1.5,
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      fontSize: '1.1rem',
-                      fontWeight: 'bold',
+                      py: 1.2,
+                      bgcolor: '#000',
+                      color: '#fff',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      transition: 'all 0.3s',
                       '&:hover': {
-                        background: 'linear-gradient(135deg, #5568d3 0%, #653a8b 100%)',
-                        transform: 'translateY(-2px)',
-                        boxShadow: 4
+                        bgcolor: '#333',
                       },
-                      transition: 'all 0.3s'
+                      '&:disabled': {
+                        bgcolor: '#e0e0e0',
+                        color: '#9e9e9e'
+                      }
                     }}
                   >
-                    {loading ? 'Submitting Request...' : 'Submit Leave Request'}
+                    {loading ? 'Submitting Request...' : 'Submit'}
                   </Button>
                 </Grid>
               </Grid>

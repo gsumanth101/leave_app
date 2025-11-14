@@ -16,6 +16,7 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [userName, setUserName] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // Sign up with email and password and assign role
@@ -50,28 +51,40 @@ export const AuthProvider = ({ children }) => {
     return await sendPasswordResetEmail(auth, email);
   };
 
-  // Get user role from Firestore
-  const fetchUserRole = async (uid) => {
+  // Get user data from Firestore
+  const fetchUserData = async (uid) => {
     try {
       const userDoc = await getDoc(doc(db, 'users', uid));
       if (userDoc.exists()) {
-        return userDoc.data().role;
+        const data = userDoc.data();
+        return {
+          role: data.role,
+          name: data.fullName || data.name || null
+        };
       }
-      return null;
+      return { role: null, name: null };
     } catch (error) {
-      console.error('Error fetching user role:', error);
-      return null;
+      console.error('Error fetching user data:', error);
+      return { role: null, name: null };
     }
+  };
+
+  // Legacy function for backward compatibility
+  const fetchUserRole = async (uid) => {
+    const data = await fetchUserData(uid);
+    return data.role;
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
       if (user) {
-        const role = await fetchUserRole(user.uid);
-        setUserRole(role);
+        const userData = await fetchUserData(user.uid);
+        setUserRole(userData.role);
+        setUserName(userData.name);
       } else {
         setUserRole(null);
+        setUserName(null);
       }
       setLoading(false);
     });
@@ -82,11 +95,13 @@ export const AuthProvider = ({ children }) => {
   const value = {
     currentUser,
     userRole,
+    userName,
     login,
     signup,
     logout,
     resetPassword,
-    fetchUserRole
+    fetchUserRole,
+    fetchUserData
   };
 
   return (

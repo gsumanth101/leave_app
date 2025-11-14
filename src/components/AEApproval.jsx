@@ -33,7 +33,7 @@ import {
 } from '@mui/icons-material';
 
 const AEApproval = () => {
-  const { currentUser, userRole } = useAuth();
+  const { currentUser, userRole, userName } = useAuth();
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -84,6 +84,7 @@ const AEApproval = () => {
         gmaeApproval: {
           status: action,
           approvedBy: currentUser?.email || 'GM/AE',
+          approvedByName: userName || currentUser?.displayName || currentUser?.email || 'GM/AE',
           approvedByRole: userRole,
           remarks: remarks,
           timestamp: serverTimestamp()
